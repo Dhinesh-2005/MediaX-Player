@@ -1,7 +1,7 @@
 /**
  * MediaX Library Manager
- * Manages the home screen library: history (recents), session video/audio library,
- * folder grouping, tab navigation, and context menus.
+ * Manages the home screen library: permission prompt on open, video directory scanning,
+ * available videos list, folder grouping, history (recents), tabs, and context menus.
  */
 
 class LibraryManager {
@@ -11,14 +11,135 @@ class LibraryManager {
     this.viewMode = 'list';       // 'list' | 'grid'
     this.menuOpenFor = null;
     this._menuEl = null;
+    this._permModalEl = null;
+    this._hasPromptedPermission = false;
   }
 
   init() {
     this._menuEl = document.getElementById('lib-item-menu');
+    this._permModalEl = document.getElementById('lib-permission-modal');
     this._bindTabs();
     this._bindMenuDismiss();
     this._bindBottomNav();
+    this._bindPermissionModal();
     this.refresh();
+
+    // On initial app open: automatically ask permission to access video files/folder
+    setTimeout(() => {
+      if (this.sessionItems.length === 0 && !this._hasPromptedPermission) {
+        this.showPermissionModal();
+      }
+    }, 400);
+  }
+
+  // --- Permission Modal Handling ---
+  showPermissionModal() {
+    this._hasPromptedPermission = true;
+    if (this._permModalEl) {
+      this._permModalEl.classList.add('open');
+    }
+  }
+
+  hidePermissionModal() {
+    if (this._permModalEl) {
+      this._permModalEl.classList.remove('open');
+    }
+  }
+
+  _bindPermissionModal() {
+    const btnGrantFolder = document.getElementById('btn-perm-grant-folder');
+    if (btnGrantFolder) {
+      btnGrantFolder.addEventListener('click', () => {
+        this.requestDirectoryAccess();
+      });
+    }
+
+    const btnSelectFiles = document.getElementById('btn-perm-select-files');
+    if (btnSelectFiles) {
+      btnSelectFiles.addEventListener('click', () => {
+        this.requestFilesAccess();
+      });
+    }
+
+    const btnDismiss = document.getElementById('btn-perm-dismiss');
+    if (btnDismiss) {
+      btnDismiss.addEventListener('click', () => {
+        this.hidePermissionModal();
+      });
+    }
+
+    if (this._permModalEl) {
+      this._permModalEl.addEventListener('click', (e) => {
+        if (e.target === this._permModalEl) {
+          this.hidePermissionModal();
+        }
+      });
+    }
+  }
+
+  async requestDirectoryAccess() {
+    this.hidePermissionModal();
+    try {
+      if ('showDirectoryPicker' in window) {
+        const dirHandle = await window.showDirectoryPicker({ mode: 'read' });
+        await this._scanDirectoryHandle(dirHandle);
+        return;
+      }
+    } catch (err) {
+      if (err.name === 'AbortError') return; // User cancelled prompt
+      console.warn('showDirectoryPicker failed, falling back to input', err);
+    }
+
+    // Fallback: trigger native webkitdirectory input
+    const folderInput = document.getElementById('folder-permission-input');
+    if (folderInput) {
+      folderInput.click();
+    }
+  }
+
+  requestFilesAccess() {
+    this.hidePermissionModal();
+    const filesInput = document.getElementById('files-permission-input') || document.getElementById('landing-file-input');
+    if (filesInput) {
+      filesInput.click();
+    }
+  }
+
+  async _scanDirectoryHandle(dirHandle) {
+    const videoExts = ['mp4', 'mkv', 'webm', 'avi', 'mov', 'm4v', 'flv', 'ts', 'wmv', '3gp', 'ogg', 'ogv'];
+    const collectedFiles = [];
+
+    async function walk(handle, path) {
+      for await (const entry of handle.values()) {
+        if (entry.kind === 'file') {
+          const ext = entry.name.split('.').pop().toLowerCase();
+          if (videoExts.includes(ext)) {
+            try {
+              const file = await entry.getFile();
+              file.folderPath = path || handle.name || 'Videos';
+              collectedFiles.push(file);
+            } catch (e) {
+              console.warn('Could not read file:', entry.name, e);
+            }
+          }
+        } else if (entry.kind === 'directory') {
+          if (!entry.name.startsWith('.') && entry.name !== 'node_modules') {
+            const subPath = path ? `${path}/${entry.name}` : entry.name;
+            await walk(entry, subPath);
+          }
+        }
+      }
+    }
+
+    try {
+      await walk(dirHandle, dirHandle.name);
+      if (collectedFiles.length > 0 && window.MediaXApp) {
+        // Add files without auto-starting playback so available videos are visible on home screen
+        window.MediaXApp.handleSelectedFiles(collectedFiles, false);
+      }
+    } catch (e) {
+      console.error('Directory scanning error:', e);
+    }
   }
 
   // Called whenever playlist changes (addFiles / removeItem / clear)
@@ -79,18 +200,11 @@ class LibraryManager {
     });
   }
 
-  // --- Library (session files) ---
+  // --- Library (Available Videos & Audio) ---
   _renderLibrary() {
     const pane = document.getElementById('lib-pane-video');
     if (!pane) return;
 
-    const items = this.sessionItems.filter(i =>
-      this.activeLibTab === 'video'
-        ? (i.type === 'video' || i.type === 'media')
-        : i.type === 'audio'
-    );
-
-    // For folders tab - group by source
     if (this.activeLibTab === 'folder') {
       this._renderFolderPane();
       return;
@@ -99,20 +213,39 @@ class LibraryManager {
     const playlist = document.getElementById('lib-pane-playlist');
     if (playlist) this._renderPlaylistPane();
 
+    const items = this.sessionItems.filter(i =>
+      this.activeLibTab === 'video'
+        ? (i.type === 'video' || i.type === 'media')
+        : i.type === 'audio'
+    );
+
     if (items.length === 0) {
       pane.innerHTML = `
-        <div class="lib-empty">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
-            <rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/>
-          </svg>
-          <div class="lib-empty-title">No ${this.activeLibTab === 'video' ? 'videos' : 'audio'} yet</div>
-          <div class="lib-empty-sub">Open local files or drop them anywhere to start playing</div>
-          <button id="lib-empty-open" class="btn-primary" style="margin-top:6px; font-size:13px; padding:10px 22px;">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+        <div class="lib-perm-home-banner">
+          <div class="lib-perm-home-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+              <polygon points="12 11 12 17 17 14" fill="currentColor"/>
             </svg>
-            Open Media
-          </button>
+          </div>
+          <h3 class="lib-perm-home-title">Storage Permission Required</h3>
+          <p class="lib-perm-home-desc">
+            Allow MediaX Player to access your video files to view and organize all available videos on your device.
+          </p>
+          <div class="lib-perm-home-actions">
+            <button id="btn-home-grant-perm" class="btn-primary" style="font-size:13px; padding:10px 20px;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+              </svg>
+              Allow Access &amp; Scan Video Folder
+            </button>
+            <button id="btn-home-select-files" class="lib-perm-btn-secondary" style="font-size:13px; padding:10px 18px; width:auto;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/>
+              </svg>
+              Select Video Files
+            </button>
+          </div>
         </div>
         <div class="lib-privacy-note">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -121,12 +254,13 @@ class LibraryManager {
           Your media stays on your device. Files are processed locally. Nothing is uploaded.
         </div>`;
 
-      const btnOpen = document.getElementById('lib-empty-open');
-      if (btnOpen) {
-        btnOpen.addEventListener('click', () => {
-          const inp = document.getElementById('landing-file-input');
-          if (inp) inp.click();
-        });
+      const btnGrant = document.getElementById('btn-home-grant-perm');
+      if (btnGrant) {
+        btnGrant.addEventListener('click', () => this.requestDirectoryAccess());
+      }
+      const btnFiles = document.getElementById('btn-home-select-files');
+      if (btnFiles) {
+        btnFiles.addEventListener('click', () => this.requestFilesAccess());
       }
       return;
     }
@@ -136,15 +270,34 @@ class LibraryManager {
       : null;
 
     pane.innerHTML = `
+      <div class="available-videos-header">
+        <div class="available-videos-title">
+          <span>Available Videos</span>
+          <span class="available-videos-count">${items.length}</span>
+        </div>
+        <div class="available-videos-actions">
+          <button id="btn-rescan-folder" class="lib-action-pill" title="Add More Videos or Scan Another Folder">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+            Add Videos / Folder
+          </button>
+        </div>
+      </div>
       <div class="video-list" id="lib-video-list">
         ${items.map((item, idx) => this._videoItemHTML(item, idx, currentId)).join('')}
       </div>
-      <div class="lib-privacy-note" style="margin-top:8px;">
+      <div class="lib-privacy-note" style="margin-top:12px;">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/>
         </svg>
         Your media stays on your device. Files are processed locally. Nothing is uploaded.
       </div>`;
+
+    const btnRescan = document.getElementById('btn-rescan-folder');
+    if (btnRescan) {
+      btnRescan.addEventListener('click', () => this.requestDirectoryAccess());
+    }
 
     pane.querySelectorAll('.video-list-item').forEach(el => {
       el.addEventListener('click', (e) => {
@@ -168,6 +321,8 @@ class LibraryManager {
     const dur = item.duration ? this._fmtDuration(item.duration) : '';
     const sizeStr = item.size ? this._fmtSize(item.size) : '';
     const isAudio = item.type === 'audio';
+    const ext = (item.name.split('.').pop() || 'MEDIA').toUpperCase();
+    const folder = item.folder || '';
 
     return `
       <div class="video-list-item${isPlaying ? ' playing' : ''}" data-item-id="${item.id}">
@@ -183,7 +338,8 @@ class LibraryManager {
           <div class="vitem-name">${this._esc(item.name)}</div>
           <div class="vitem-meta">
             ${sizeStr ? `<span>${sizeStr}</span>` : ''}
-            ${isAudio ? `<span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>Audio</span>` : `<span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>Video</span>`}
+            <span style="font-size:10px; font-weight:700; padding:1px 5px; border-radius:4px; background:rgba(99,102,241,0.18); color:var(--accent-light);">${ext}</span>
+            ${folder ? `<span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px;"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>${this._esc(folder)}</span>` : ''}
           </div>
           ${isPlaying ? `<div class="vitem-now-playing"><span></span><span></span><span></span><span></span></div>` : ''}
         </div>
@@ -199,24 +355,35 @@ class LibraryManager {
     const pane = document.getElementById('lib-pane-folder');
     if (!pane) return;
 
-    // Group session items by approximate folder name (from filename prefix)
+    // Group session items by folder
     const groups = {};
     this.sessionItems.forEach(item => {
-      const parts = item.name.split(/[\\/]/);
-      const folder = parts.length > 1 ? parts[0] : 'Current Session';
+      const folder = item.folder || (item.name.includes('/') ? item.name.split('/')[0] : 'Device Videos');
       if (!groups[folder]) groups[folder] = [];
       groups[folder].push(item);
     });
 
     if (Object.keys(groups).length === 0) {
       pane.innerHTML = `
-        <div class="lib-empty">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
-            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
-          </svg>
-          <div class="lib-empty-title">No folders yet</div>
-          <div class="lib-empty-sub">Open media files to see them grouped here</div>
+        <div class="lib-perm-home-banner">
+          <div class="lib-perm-home-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+            </svg>
+          </div>
+          <h3 class="lib-perm-home-title">No Video Folders Found</h3>
+          <p class="lib-perm-home-desc">Allow access to your video folder to organize your videos into folders here.</p>
+          <div class="lib-perm-home-actions">
+            <button id="btn-folder-grant-perm" class="btn-primary" style="font-size:13px; padding:10px 20px;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+              </svg>
+              Scan Video Folder
+            </button>
+          </div>
         </div>`;
+      const btnGrant = document.getElementById('btn-folder-grant-perm');
+      if (btnGrant) btnGrant.addEventListener('click', () => this.requestDirectoryAccess());
       return;
     }
 
@@ -225,18 +392,17 @@ class LibraryManager {
         ${Object.entries(groups).map(([name, items]) => `
           <div class="folder-card" data-folder="${this._esc(name)}">
             <div class="folder-icon">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
               </svg>
             </div>
             <div class="folder-name">${this._esc(name)}</div>
-            <div class="folder-count">${items.length} file${items.length !== 1 ? 's' : ''}</div>
+            <div class="folder-count">${items.length} video${items.length !== 1 ? 's' : ''}</div>
           </div>`).join('')}
       </div>`;
 
     pane.querySelectorAll('.folder-card').forEach(el => {
       el.addEventListener('click', () => {
-        // Switch to video tab and filter (future enhancement)
         this._switchTab('video');
       });
     });
@@ -358,8 +524,10 @@ class LibraryManager {
     const btnPlay = menu.querySelector('[data-action="play"]');
     if (btnPlay) {
       btnPlay.addEventListener('click', () => {
-        if (this.menuOpenFor) this._playItem(this.menuOpenFor);
-        this._closeMenu();
+        if (this.menuOpenFor) {
+          this._playItem(this.menuOpenFor);
+          this._closeMenu();
+        }
       });
     }
 
@@ -372,15 +540,20 @@ class LibraryManager {
           if (idx !== -1) {
             window.MediaXPlaylist.removeItem(idx);
           }
+          this._closeMenu();
         }
-        this._closeMenu();
       });
     }
 
+    // Close on outside click
     document.addEventListener('click', (e) => {
-      if (menu.classList.contains('open') && !menu.contains(e.target)) {
+      if (!menu.contains(e.target) && !e.target.closest('.vitem-more')) {
         this._closeMenu();
       }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') this._closeMenu();
     });
   }
 
@@ -389,38 +562,40 @@ class LibraryManager {
     this.menuOpenFor = null;
   }
 
-  // --- Utilities ---
-  _fmtDuration(secs) {
-    if (!secs || secs <= 0) return '';
-    secs = Math.round(secs);
-    const h = Math.floor(secs / 3600);
-    const m = Math.floor((secs % 3600) / 60);
-    const s = secs % 60;
-    if (h > 0) return `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-    return `${m}:${String(s).padStart(2,'0')}`;
+  // --- Formatters ---
+  _fmtDuration(seconds) {
+    const s = Math.floor(seconds);
+    const m = Math.floor(s / 60);
+    const rem = s % 60;
+    const h = Math.floor(m / 60);
+    const remM = m % 60;
+    if (h > 0) {
+      return `${h}:${String(remM).padStart(2, '0')}:${String(rem).padStart(2, '0')}`;
+    }
+    return `${m}:${String(rem).padStart(2, '0')}`;
   }
 
   _fmtSize(bytes) {
-    if (!bytes || bytes <= 0) return '';
-    if (bytes >= 1073741824) return `${(bytes / 1073741824).toFixed(1)} GB`;
-    if (bytes >= 1048576) return `${(bytes / 1048576).toFixed(1)} MB`;
-    if (bytes >= 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-    return `${bytes} B`;
+    if (!bytes) return '';
+    const mb = bytes / (1024 * 1024);
+    if (mb >= 1024) return `${(mb / 1024).toFixed(1)} GB`;
+    return `${Math.round(mb)} MB`;
   }
 
-  _timeAgo(ts) {
-    if (!ts) return '';
-    const diff = Date.now() - ts;
+  _timeAgo(timestamp) {
+    if (!timestamp) return '';
+    const diff = Date.now() - timestamp;
     const m = Math.floor(diff / 60000);
-    if (m < 1) return 'just now';
-    if (m < 60) return `${m}m ago`;
+    if (m < 60) return `${Math.max(1, m)}m ago`;
     const h = Math.floor(m / 60);
     if (h < 24) return `${h}h ago`;
     return `${Math.floor(h / 24)}d ago`;
   }
 
   _esc(str) {
-    return String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[m]);
+    return String(str || '').replace(/[&<>"']/g, m => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    })[m]);
   }
 }
 

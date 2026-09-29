@@ -143,15 +143,36 @@ class MediaXApplication {
       if (input) {
         input.addEventListener('change', (e) => {
           if (e.target.files && e.target.files.length > 0) {
-            this.handleSelectedFiles(e.target.files);
+            this.handleSelectedFiles(e.target.files, true);
             input.value = ''; // reset so same file can be reopened
           }
         });
       }
     });
+
+    // Permission / Library scanner inputs (stays on home page, autoPlay = false)
+    const folderPermInput = document.getElementById('folder-permission-input');
+    if (folderPermInput) {
+      folderPermInput.addEventListener('change', (e) => {
+        if (e.target.files && e.target.files.length > 0) {
+          this.handleSelectedFiles(e.target.files, false);
+          folderPermInput.value = '';
+        }
+      });
+    }
+
+    const filesPermInput = document.getElementById('files-permission-input');
+    if (filesPermInput) {
+      filesPermInput.addEventListener('change', (e) => {
+        if (e.target.files && e.target.files.length > 0) {
+          this.handleSelectedFiles(e.target.files, false);
+          filesPermInput.value = '';
+        }
+      });
+    }
   }
 
-  handleSelectedFiles(fileList) {
+  handleSelectedFiles(fileList, autoPlay = true) {
     const files = Array.from(fileList);
     const mediaFiles = [];
     const subtitleFiles = [];
@@ -172,13 +193,17 @@ class MediaXApplication {
 
     if (mediaFiles.length > 0) {
       if (window.MediaXPlaylist) {
-        window.MediaXPlaylist.addFiles(mediaFiles);
-        // Sync library with new files (before navigating to player)
+        window.MediaXPlaylist.addFiles(mediaFiles, autoPlay);
+        // Sync library with new files
         if (window.MediaXLibrary) {
           window.MediaXLibrary.sync(window.MediaXPlaylist.items);
         }
       }
-      this.showPlayerView();
+      if (autoPlay) {
+        this.showPlayerView();
+      } else {
+        this.showLandingView();
+      }
     }
   }
 
@@ -430,8 +455,12 @@ class MediaXApplication {
     const btnOpenHeader2 = document.getElementById('btn-open-header');
     if (btnOpenHeader2) {
       btnOpenHeader2.addEventListener('click', () => {
-        const inp = document.getElementById('header-file-input');
-        if (inp) inp.click();
+        if (window.MediaXLibrary) {
+          window.MediaXLibrary.requestDirectoryAccess();
+        } else {
+          const inp = document.getElementById('header-file-input');
+          if (inp) inp.click();
+        }
       });
     }
 
@@ -447,8 +476,12 @@ class MediaXApplication {
     const btnSearch = document.getElementById('btn-library-search');
     if (btnSearch) {
       btnSearch.addEventListener('click', () => {
-        const inp = document.getElementById('landing-file-input');
-        if (inp) inp.click();
+        if (window.MediaXLibrary) {
+          window.MediaXLibrary.requestFilesAccess();
+        } else {
+          const inp = document.getElementById('landing-file-input');
+          if (inp) inp.click();
+        }
       });
     }
 
@@ -456,8 +489,12 @@ class MediaXApplication {
     const fab = document.getElementById('lib-fab');
     if (fab) {
       fab.addEventListener('click', () => {
-        const inp = document.getElementById('landing-file-input');
-        if (inp) inp.click();
+        if (window.MediaXLibrary) {
+          window.MediaXLibrary.requestDirectoryAccess();
+        } else {
+          const inp = document.getElementById('landing-file-input');
+          if (inp) inp.click();
+        }
       });
     }
 

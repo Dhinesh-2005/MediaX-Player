@@ -19,17 +19,29 @@ class PlaylistManager {
     this.render();
   }
 
-  addFiles(files) {
+  addFiles(files, autoPlay = true) {
     if (!files || files.length === 0) return;
     const fileArray = Array.from(files);
 
     const startIndex = this.items.length;
     fileArray.forEach((file) => {
+      let folder = file.folderPath || '';
+      if (!folder && file.webkitRelativePath) {
+        const parts = file.webkitRelativePath.split('/');
+        if (parts.length > 1) {
+          folder = parts.slice(0, -1).join('/');
+        }
+      }
+      if (!folder) {
+        folder = 'Device Videos';
+      }
+
       const item = {
         id: 'pl_' + Math.random().toString(36).substring(2, 9),
         name: file.name,
         size: file.size,
         type: file.type.startsWith('audio') ? 'audio' : 'video',
+        folder: folder,
         file: file,
         url: URL.createObjectURL(file),
         duration: 0
@@ -40,8 +52,8 @@ class PlaylistManager {
     this.rebuildShuffleOrder();
     this.render();
 
-    // If nothing currently playing, play first added file
-    if (this.currentIndex === -1 && this.items.length > 0) {
+    // If autoPlay requested and nothing currently playing, play first added file
+    if (autoPlay && this.currentIndex === -1 && this.items.length > 0) {
       this.playIndex(startIndex);
     }
   }
