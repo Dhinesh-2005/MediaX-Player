@@ -88,6 +88,7 @@ class MediaXApplication {
     this.bindBackdrop();
     this.bindSamples();
     this.bindScreenshotModal();
+    this.bindLibrary();
 
     console.log('MediaX Player initialized successfully.');
   }
@@ -170,10 +171,14 @@ class MediaXApplication {
     }
 
     if (mediaFiles.length > 0) {
-      this.showPlayerView();
       if (window.MediaXPlaylist) {
         window.MediaXPlaylist.addFiles(mediaFiles);
+        // Sync library with new files (before navigating to player)
+        if (window.MediaXLibrary) {
+          window.MediaXLibrary.sync(window.MediaXPlaylist.items);
+        }
       }
+      this.showPlayerView();
     }
   }
 
@@ -209,7 +214,10 @@ class MediaXApplication {
   bindHeaderNav() {
     const btnBackHome = document.getElementById('btn-back-home');
     if (btnBackHome) {
-      btnBackHome.addEventListener('click', () => this.showLandingView());
+      btnBackHome.addEventListener('click', () => {
+        this.showLandingView();
+        if (window.MediaXLibrary) window.MediaXLibrary.refresh();
+      });
     }
 
     const btnSettings = document.getElementById('btn-toggle-settings');
@@ -413,8 +421,67 @@ class MediaXApplication {
     }
   }
 
+  // --- Library Home Screen ---
+  bindLibrary() {
+    // Initialize library module
+    if (window.MediaXLibrary) window.MediaXLibrary.init();
+
+    // Open file from header folder icon
+    const btnOpenHeader2 = document.getElementById('btn-open-header');
+    if (btnOpenHeader2) {
+      btnOpenHeader2.addEventListener('click', () => {
+        const inp = document.getElementById('header-file-input');
+        if (inp) inp.click();
+      });
+    }
+
+    // Header settings icon (on landing) opens settings drawer
+    const btnLibSettings = document.getElementById('btn-library-settings');
+    if (btnLibSettings) {
+      btnLibSettings.addEventListener('click', () => {
+        if (window.MediaXSettings) window.MediaXSettings.toggleDrawer();
+      });
+    }
+
+    // Search (placeholder - opens file picker)
+    const btnSearch = document.getElementById('btn-library-search');
+    if (btnSearch) {
+      btnSearch.addEventListener('click', () => {
+        const inp = document.getElementById('landing-file-input');
+        if (inp) inp.click();
+      });
+    }
+
+    // FAB (mobile floating button)
+    const fab = document.getElementById('lib-fab');
+    if (fab) {
+      fab.addEventListener('click', () => {
+        const inp = document.getElementById('landing-file-input');
+        if (inp) inp.click();
+      });
+    }
+
+    // Clear history button on home screen
+    const btnClearHistory = document.getElementById('btn-clear-history-home');
+    if (btnClearHistory) {
+      btnClearHistory.addEventListener('click', () => {
+        if (window.MediaXStorage) window.MediaXStorage.clearRecents();
+        if (window.MediaXLibrary) window.MediaXLibrary.refresh();
+      });
+    }
+
+    // "Me" bottom nav button -> opens settings
+    const btnNavMe = document.getElementById('lib-nav-me');
+    if (btnNavMe) {
+      btnNavMe.addEventListener('click', () => {
+        if (window.MediaXSettings) window.MediaXSettings.toggleDrawer();
+      });
+    }
+  }
+
   // --- Built-in Sample Media Triggers ---
   bindSamples() {
+
     // Sample Video 1 (Big Buck Bunny)
     const btnSample1 = document.getElementById('sample-video-1');
     if (btnSample1) {

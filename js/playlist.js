@@ -181,6 +181,19 @@ class PlaylistManager {
     }
   }
 
+  removeItem(index) {
+    if (index < 0 || index >= this.items.length) return;
+    const item = this.items[index];
+    if (item.file && item.url) URL.revokeObjectURL(item.url);
+    this.items.splice(index, 1);
+    if (this.currentIndex >= this.items.length) {
+      this.currentIndex = this.items.length - 1;
+    }
+    this.rebuildShuffleOrder();
+    this.render();
+    if (window.MediaXLibrary) window.MediaXLibrary.sync(this.items);
+  }
+
   toggleShuffle() {
     this.isShuffled = !this.isShuffled;
     if (this.isShuffled) {
