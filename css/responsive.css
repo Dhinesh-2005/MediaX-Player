@@ -1,0 +1,217 @@
+/* ==========================================================================
+   MediaX Player - Mobile & Responsive Layouts
+   ========================================================================== */
+
+/* Tablet & Smaller Laptops (<= 1024px) */
+@media (max-width: 1024px) {
+  :root {
+    --sidebar-width: 340px;
+  }
+  
+  .settings-drawer {
+    width: 480px;
+  }
+
+  .media-active-title {
+    max-width: 320px;
+  }
+}
+
+/* Tablets & Mobile (<= 768px) */
+@media (max-width: 768px) {
+  :root {
+    --header-height: 54px;
+    --controls-height: 96px;
+    --seekbar-height: 8px;
+    --seekbar-thumb: 18px;
+  }
+
+  /* Landing Screen on mobile */
+  .landing-header {
+    padding: 0 16px;
+  }
+
+  .landing-content {
+    gap: 20px;
+  }
+
+  .dropzone-card {
+    padding: 32px 18px;
+  }
+
+  .dropzone-icon-wrapper {
+    width: 64px;
+    height: 64px;
+  }
+
+  .dropzone-title {
+    font-size: 18px;
+  }
+
+  /* Player on mobile */
+  .player-top-bar {
+    padding: 0 14px;
+  }
+
+  .media-active-title {
+    max-width: 180px;
+    font-size: 13px;
+  }
+
+  .media-active-specs {
+    display: none;
+  }
+
+  .player-controls-container {
+    padding: 12px 14px 16px 14px;
+    gap: 8px;
+  }
+
+  /* Make touch targets larger */
+  .btn-icon {
+    width: 44px;
+    height: 44px;
+  }
+
+  .btn-play-main {
+    width: 52px;
+    height: 52px;
+  }
+
+  /* Collapse volume slider on mobile to save horizontal space */
+  .volume-slider {
+    display: none;
+  }
+
+  .volume-percent-label {
+    display: none;
+  }
+
+  /* Hide less critical controls from bottom bar on mobile into settings drawer */
+  .btn-hide-mobile {
+    display: none !important;
+  }
+
+  /* Bottom sheet style for drawers on mobile */
+  .settings-drawer,
+  .playlist-drawer {
+    width: 100vw;
+    height: 82vh;
+    top: auto;
+    bottom: 0;
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    border-left: none;
+    border-top: 1px solid var(--border);
+    transform: translateY(100%);
+  }
+
+  .settings-drawer.open,
+  .playlist-drawer.open {
+    transform: translateY(0);
+  }
+
+  .drawer-content {
+    flex-direction: column;
+  }
+
+  .drawer-tabs-nav {
+    width: 100%;
+    flex-direction: row;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+    padding: 8px 12px;
+    gap: 6px;
+    overflow-x: auto;
+    flex-shrink: 0;
+  }
+
+  .tab-nav-btn {
+    width: auto;
+    white-space: nowrap;
+    border-left: none;
+    border-bottom: 3px solid transparent;
+    padding: 8px 12px;
+  }
+
+  .tab-nav-btn.active {
+    border-left: none;
+    border-bottom: 3px solid var(--accent);
+  }
+
+  /* Subtitle sizing on mobile */
+  .subtitle-cue {
+    font-size: 18px;
+    padding: 3px 10px;
+  }
+
+  #subtitles-container {
+    bottom: 90px;
+  }
+
+  .view-player.controls-hidden #subtitles-container {
+    bottom: 24px;
+  }
+
+  /* Audio visualizer card on mobile */
+  .audio-meta-card {
+    padding: 20px;
+    width: 95%;
+  }
+
+  .audio-art-disc {
+    width: 90px;
+    height: 90px;
+  }
+}
+
+/* Very Small Mobile Screens (<= 480px) */
+@media (max-width: 480px) {
+  .btn-hide-xs {
+    display: none !important;
+  }
+
+  .time-display {
+    font-size: 11px;
+    padding: 2px 6px;
+  }
+
+  .btn-play-main {
+    width: 46px;
+    height: 46px;
+  }
+
+  .hero-heading {
+    font-size: 28px;
+  }
+
+  .hero-subtitle {
+    font-size: 14px;
+  }
+
+  .sample-pill {
+    padding: 6px 12px;
+    font-size: 11px;
+  }
+}
+
+/* High DPI / Touch enhancements */
+@media (hover: none) and (pointer: coarse) {
+  .seekbar-thumb {
+    transform: translate(-50%, -50%) scale(1);
+  }
+
+  /* Auto-hide controls slower or on tap */
+  .seekbar-track {
+    height: 8px;
+  }
+}
+
+/* Reduced Motion Mode for Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
