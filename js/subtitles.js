@@ -219,15 +219,8 @@ class SubtitleManager {
       this.isEnabled = true;
       this.updateAvailableTracks();
       this.selectSubtitleTrack('external');
-
-      if (window.MediaXApp) {
-        window.MediaXApp.showToast(`Subtitles loaded: ${file.name} (${this.cues.length} cues)`, 'success');
-      }
     } catch (e) {
       console.error('SubtitleManager: Failed to parse subtitle file', e);
-      if (window.MediaXApp) {
-        window.MediaXApp.showToast('Failed to parse subtitle file', 'error');
-      }
     }
   }
 

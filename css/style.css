@@ -705,13 +705,13 @@ input[type="range"]::-moz-range-thumb {
   font-weight: 500;
 }
 
-/* Toast Notifications Container */
+/* Toast Notifications Container (Disabled) */
 #toast-container {
+  display: none !important;
   position: fixed;
   top: 24px;
   right: 24px;
   z-index: 99999;
-  display: flex;
   flex-direction: column;
   gap: 10px;
   pointer-events: none;

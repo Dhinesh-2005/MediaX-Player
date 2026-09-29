@@ -32,9 +32,6 @@ class ScreenshotManager {
    */
   async capture(showModal = true) {
     if (!this.videoEl || !this.videoEl.videoWidth || !this.videoEl.videoHeight) {
-      if (window.MediaXApp) {
-        window.MediaXApp.showToast('No active video to capture', 'warning');
-      }
       return;
     }
 
@@ -76,20 +73,13 @@ class ScreenshotManager {
         this.previewImgEl.src = dataUrl;
         this.modalEl.classList.add('open');
         if (window.MediaXApp) {
-          window.MediaXApp.openBackdrop(() => this.closeModal());
-        }
+        window.MediaXApp.openBackdrop(() => this.closeModal());
+      }
       } else {
         this.download();
       }
-
-      if (window.MediaXApp) {
-        window.MediaXApp.showToast(`Screenshot captured (${width}×${height})`, 'success');
-      }
     } catch (err) {
       console.error('ScreenshotManager: Frame capture failed', err);
-      if (window.MediaXApp) {
-        window.MediaXApp.showToast('Unable to capture screenshot from current frame', 'error');
-      }
     }
   }
 
@@ -112,9 +102,6 @@ class ScreenshotManager {
     document.body.removeChild(a);
     setTimeout(() => URL.revokeObjectURL(url), 3000);
     this.closeModal();
-    if (window.MediaXApp) {
-      window.MediaXApp.showToast(`Saved: ${this.lastFilename}`, 'success');
-    }
   }
 
   async copyToClipboard() {
@@ -139,18 +126,12 @@ class ScreenshotManager {
           new ClipboardItem({ 'image/png': clipBlob })
         ]);
 
-        if (window.MediaXApp) {
-          window.MediaXApp.showToast('Screenshot copied to clipboard!', 'success');
-        }
         this.closeModal();
       } else {
         throw new Error('Clipboard API not supported');
       }
     } catch (e) {
       console.warn('ScreenshotManager: Clipboard copy error', e);
-      if (window.MediaXApp) {
-        window.MediaXApp.showToast('Clipboard copy not permitted. Downloading instead.', 'warning');
-      }
       this.download();
     }
   }

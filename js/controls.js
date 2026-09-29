@@ -464,16 +464,9 @@ class MediaXControlsManager {
         await document.exitPictureInPicture();
       } else if (video.requestPictureInPicture) {
         await video.requestPictureInPicture();
-      } else {
-        if (window.MediaXApp) {
-          window.MediaXApp.showToast('Picture-in-picture is not supported by this browser.', 'warning');
-        }
       }
     } catch (e) {
       console.warn('PiP error', e);
-      if (window.MediaXApp) {
-        window.MediaXApp.showToast('Unable to enter Picture-in-Picture mode', 'error');
-      }
     }
   }
 

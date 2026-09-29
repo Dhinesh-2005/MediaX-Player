@@ -130,9 +130,6 @@ class EqualizerController {
     EQ_PRESETS['Custom'] = [...this.currentBands];
     window.MediaXStorage.saveCustomEQ(this.currentBands);
     this.applyPreset('Custom', true);
-    if (window.MediaXApp) {
-      window.MediaXApp.showToast('Custom Equalizer preset saved', 'success');
-    }
   }
 }
 

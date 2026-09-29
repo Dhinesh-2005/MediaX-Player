@@ -279,11 +279,9 @@ class MediaXPlayerController {
 
   setLoopB() {
     if (!this.videoEl || this.loopPointA === null) {
-      if (window.MediaXApp) window.MediaXApp.showToast('Please set point A first', 'warning');
       return;
     }
     if (this.videoEl.currentTime <= this.loopPointA) {
-      if (window.MediaXApp) window.MediaXApp.showToast('Point B must be after point A', 'warning');
       return;
     }
     this.loopPointB = this.videoEl.currentTime;
@@ -331,20 +329,13 @@ class MediaXPlayerController {
     const isWasmCandidate = /\.(mkv|avi|flv|wmv|ts)$/i.test(name);
 
     if (isWasmCandidate && window.MediaXFFmpeg && this.currentMedia.file) {
-      if (window.MediaXApp) {
-        window.MediaXApp.showToast('Media codec not natively supported. Starting local WebAssembly decoder...', 'warning');
-      }
       window.MediaXFFmpeg.transcodeFile(this.currentMedia.file).then((converted) => {
         this.loadMedia(converted);
       }).catch((e) => {
-        if (window.MediaXApp) {
-          window.MediaXApp.showToast('This media format or codec is not supported by your current browser. Try another format.', 'error');
-        }
+        console.warn('FFmpeg transcode failed', e);
       });
     } else {
-      if (window.MediaXApp) {
-        window.MediaXApp.showToast('This media format or codec is not supported by your current browser. Try another browser or use a compatible media format.', 'error');
-      }
+      console.warn('Unsupported media format:', name);
     }
   }
 

@@ -107,10 +107,6 @@ class FFmpegClientLoader {
 
       this.hideProgress();
 
-      if (window.MediaXApp) {
-        window.MediaXApp.showToast('Transcoding completed successfully!', 'success');
-      }
-
       return {
         name: file.name.replace(/\.[^/.]+$/, "") + ".mp4",
         size: convertedBlob.size,
@@ -148,9 +144,6 @@ class FFmpegClientLoader {
 
   cancel() {
     this.hideProgress();
-    if (window.MediaXApp) {
-      window.MediaXApp.showToast('Transcoding cancelled', 'info');
-    }
   }
 }
 

@@ -482,7 +482,6 @@ class SettingsController {
       btnClearRecents.addEventListener('click', () => {
         if (window.MediaXStorage) {
           window.MediaXStorage.clearRecents();
-          if (window.MediaXApp) window.MediaXApp.showToast('Recent playback history cleared', 'success');
         }
       });
     }

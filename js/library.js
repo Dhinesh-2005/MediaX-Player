@@ -74,10 +74,7 @@ class LibraryManager {
 
     container.querySelectorAll('.history-thumb').forEach(el => {
       el.addEventListener('click', () => {
-        // Can't re-open local files from recents (no File handle), so show a helpful message
-        if (window.MediaXApp) {
-          window.MediaXApp.showToast('Select the file again to resume playback', 'info');
-        }
+        // Local files can't be re-opened from history (no File handle stored)
       });
     });
   }
