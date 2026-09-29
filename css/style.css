@@ -300,8 +300,13 @@ input[type="range"]::-moz-range-thumb {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: 24px;
+  justify-content: flex-start;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
+  overscroll-behavior-y: contain;
+  padding: 0;
   background: radial-gradient(circle at 50% 20%, rgba(99, 102, 241, 0.12) 0%, transparent 60%),
               radial-gradient(circle at 80% 80%, rgba(168, 85, 247, 0.08) 0%, transparent 50%),
               var(--bg-primary);
@@ -317,19 +322,22 @@ input[type="range"]::-moz-range-thumb {
 }
 
 .landing-header {
-  position: absolute;
+  position: sticky;
   top: 0;
   left: 0;
   right: 0;
+  width: 100%;
   height: var(--header-height);
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 28px;
   border-bottom: 1px solid var(--border-subtle);
-  background: rgba(6, 8, 13, 0.4);
+  background: rgba(6, 8, 13, 0.85);
   backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);
+  z-index: 20;
+  flex-shrink: 0;
 }
 
 .brand-badge {
@@ -402,7 +410,9 @@ input[type="range"]::-moz-range-thumb {
   align-items: center;
   gap: 28px;
   z-index: 2;
-  margin-top: 20px;
+  margin: auto 0;
+  padding: 24px 20px 48px 20px;
+  flex-shrink: 0;
 }
 
 .hero-tag {

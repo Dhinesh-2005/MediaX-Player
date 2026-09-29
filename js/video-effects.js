@@ -76,19 +76,12 @@ class VideoEffectsManager {
       default:
         this.videoEl.style.objectFit = 'contain';
     }
-
-    if (window.MediaXApp) {
-      window.MediaXApp.showToast(`Display mode: ${mode.toUpperCase()}`, 'info');
-    }
   }
 
   // --- Transformations ---
   rotateClockwise() {
     this.rotation = (this.rotation + 90) % 360;
     this.applyTransform();
-    if (window.MediaXApp) {
-      window.MediaXApp.showToast(`Rotation: ${this.rotation}°`, 'info');
-    }
   }
 
   setRotation(deg) {
@@ -104,17 +97,11 @@ class VideoEffectsManager {
   toggleFlipH() {
     this.flipH = !this.flipH;
     this.applyTransform();
-    if (window.MediaXApp) {
-      window.MediaXApp.showToast(`Flip Horizontal: ${this.flipH ? 'ON' : 'OFF'}`, 'info');
-    }
   }
 
   toggleFlipV() {
     this.flipV = !this.flipV;
     this.applyTransform();
-    if (window.MediaXApp) {
-      window.MediaXApp.showToast(`Flip Vertical: ${this.flipV ? 'ON' : 'OFF'}`, 'info');
-    }
   }
 
   resetFlip() {
@@ -134,16 +121,10 @@ class VideoEffectsManager {
 
   zoomIn(step = 0.15) {
     this.setZoom(this.zoom + step);
-    if (window.MediaXApp) {
-      window.MediaXApp.showToast(`Zoom: ${Math.round(this.zoom * 100)}%`, 'info');
-    }
   }
 
   zoomOut(step = 0.15) {
     this.setZoom(this.zoom - step);
-    if (window.MediaXApp) {
-      window.MediaXApp.showToast(`Zoom: ${Math.round(this.zoom * 100)}%`, 'info');
-    }
   }
 
   resetZoom() {

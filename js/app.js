@@ -96,12 +96,14 @@ class MediaXApplication {
   showPlayerView() {
     if (this.landingViewEl) this.landingViewEl.classList.add('hidden');
     if (this.playerViewEl) this.playerViewEl.classList.add('active');
+    document.body.classList.add('player-active');
   }
 
   showLandingView() {
     if (window.MediaXPlayer) window.MediaXPlayer.unload();
     if (this.playerViewEl) this.playerViewEl.classList.remove('active');
     if (this.landingViewEl) this.landingViewEl.classList.remove('hidden');
+    document.body.classList.remove('player-active');
   }
 
   updateActiveMediaTitle(title, tag = 'MEDIA') {
@@ -231,8 +233,7 @@ class MediaXApplication {
     if (btnMiniPlayer) {
       btnMiniPlayer.addEventListener('click', () => {
         if (this.playerViewEl) {
-          const isMini = this.playerViewEl.classList.toggle('mini-player-mode');
-          this.showToast(isMini ? 'Mini player activated' : 'Expanded to full window', 'info');
+          this.playerViewEl.classList.toggle('mini-player-mode');
         }
       });
     }
@@ -373,7 +374,6 @@ class MediaXApplication {
       btnResume.onclick = () => {
         onResume();
         dismiss();
-        this.showToast('Playback resumed', 'success');
       };
     }
 
@@ -449,7 +449,6 @@ class MediaXApplication {
     const btnSampleSynth = document.getElementById('sample-audio-synth');
     if (btnSampleSynth) {
       btnSampleSynth.addEventListener('click', async () => {
-        this.showToast('Synthesizing 100% offline audio track...', 'info');
         try {
           if (window.MediaXSamples) {
             const wavBlob = await window.MediaXSamples.generateOfflineAudio();
@@ -463,7 +462,6 @@ class MediaXApplication {
                   'audio'
                 );
               }
-              this.showToast('Synthesized track playing. Test the Equalizer & Visualizer!', 'success');
             }
           }
         } catch (e) {

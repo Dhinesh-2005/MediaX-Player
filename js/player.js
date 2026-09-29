@@ -220,9 +220,6 @@ class MediaXPlayerController {
     const fps = (window.MediaXMetadata && window.MediaXMetadata.fpsEstimate) ? window.MediaXMetadata.fpsEstimate : 30;
     const frameDuration = 1 / fps;
     this.seekTo(this.videoEl.currentTime + (direction * frameDuration));
-    if (window.MediaXApp) {
-      window.MediaXApp.showToast(`Frame ${direction > 0 ? '+1' : '-1'} (~${Math.round(fps)} fps)`, 'info');
-    }
   }
 
   setVolume(vol) {
@@ -259,9 +256,6 @@ class MediaXPlayerController {
     if (window.MediaXControls) {
       window.MediaXControls.updateVolumeUI(this.volume, this.isMuted);
     }
-    if (window.MediaXApp) {
-      window.MediaXApp.showToast(this.isMuted ? 'Muted' : 'Unmuted', 'info');
-    }
   }
 
   setSpeed(speedVal) {
@@ -272,18 +266,12 @@ class MediaXPlayerController {
     if (window.MediaXControls) {
       window.MediaXControls.updateSpeedUI(this.speed);
     }
-    if (window.MediaXApp) {
-      window.MediaXApp.showToast(`Playback Speed: ${this.speed}x`, 'info');
-    }
   }
 
   // --- A-B Loop Controls ---
   setLoopA() {
     if (!this.videoEl) return;
     this.loopPointA = this.videoEl.currentTime;
-    if (window.MediaXApp) {
-      window.MediaXApp.showToast(`Loop point A set: ${this.formatTime(this.loopPointA)}`, 'info');
-    }
     if (window.MediaXControls) {
       window.MediaXControls.updateLoopMarkers(this.loopPointA, this.loopPointB, this.videoEl.duration);
     }
@@ -300,9 +288,6 @@ class MediaXPlayerController {
     }
     this.loopPointB = this.videoEl.currentTime;
     this.isLoopActive = true;
-    if (window.MediaXApp) {
-      window.MediaXApp.showToast(`Loop active: ${this.formatTime(this.loopPointA)} → ${this.formatTime(this.loopPointB)}`, 'success');
-    }
     if (window.MediaXControls) {
       window.MediaXControls.updateLoopMarkers(this.loopPointA, this.loopPointB, this.videoEl.duration);
     }

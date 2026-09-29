@@ -119,9 +119,6 @@ class SubtitleManager {
           this.videoEl.textTracks[i].mode = 'disabled';
         }
       }
-      if (window.MediaXApp) {
-        window.MediaXApp.showToast('Subtitles: Off', 'info');
-      }
     } else if (trackId === 'default') {
       this.isEnabled = true;
       // If native text tracks exist, enable the first or default one
@@ -137,9 +134,6 @@ class SubtitleManager {
           }
         }
       }
-      if (window.MediaXApp) {
-        window.MediaXApp.showToast('Subtitles: Default Caption', 'info');
-      }
     } else if (selected && selected.trackObj) {
       this.isEnabled = true;
       // Embedded text track selected
@@ -149,18 +143,12 @@ class SubtitleManager {
           t.mode = (i === selected.index) ? 'hidden' : 'disabled';
         }
       }
-      if (window.MediaXApp) {
-        window.MediaXApp.showToast(`Subtitles: ${selected.label}`, 'info');
-      }
     } else if (trackId === 'external') {
       this.isEnabled = true;
       if (this.videoEl && this.videoEl.textTracks) {
         for (let i = 0; i < this.videoEl.textTracks.length; i++) {
           this.videoEl.textTracks[i].mode = 'disabled';
         }
-      }
-      if (window.MediaXApp) {
-        window.MediaXApp.showToast(`Subtitles: ${selected.label}`, 'info');
       }
     }
 

@@ -199,7 +199,6 @@ class MediaXControlsManager {
         } else {
           window.MediaXPlayer.clearABLoop();
           btnLoop.classList.remove('active');
-          if (window.MediaXApp) window.MediaXApp.showToast('A-B Loop cleared', 'info');
         }
       });
     }

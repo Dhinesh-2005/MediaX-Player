@@ -129,10 +129,6 @@ class SettingsController {
     if (window.MediaXStorage) {
       window.MediaXStorage.setSetting('theme', themeName);
     }
-
-    if (notify && window.MediaXApp) {
-      window.MediaXApp.showToast(`Theme changed: ${themeName.toUpperCase()}`, 'info');
-    }
   }
 
   // --- Playback Settings ---
@@ -237,9 +233,6 @@ class SettingsController {
     if (normSwitch) {
       normSwitch.addEventListener('change', (e) => {
         if (window.MediaXAudio) window.MediaXAudio.setNormalization(e.target.checked);
-        if (window.MediaXApp) {
-          window.MediaXApp.showToast(`Audio Normalization: ${e.target.checked ? 'Enabled' : 'Disabled'}`, 'info');
-        }
       });
     }
 
@@ -248,9 +241,6 @@ class SettingsController {
     if (monoSwitch) {
       monoSwitch.addEventListener('change', (e) => {
         if (window.MediaXAudio) window.MediaXAudio.setMono(e.target.checked);
-        if (window.MediaXApp) {
-          window.MediaXApp.showToast(`Mono Downmix: ${e.target.checked ? 'Enabled' : 'Disabled'}`, 'info');
-        }
       });
     }
 
@@ -367,7 +357,6 @@ class SettingsController {
         if (window.MediaXVideoEffects) {
           window.MediaXVideoEffects.resetAdjustment('all');
           this.resetAdjustmentSliderUI();
-          if (window.MediaXApp) window.MediaXApp.showToast('Reset all image adjustments', 'info');
         }
       });
     }

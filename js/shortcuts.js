@@ -143,7 +143,6 @@ class ShortcutsManager {
             window.MediaXPlayer.setLoopB();
           } else {
             window.MediaXPlayer.clearABLoop();
-            if (window.MediaXApp) window.MediaXApp.showToast('A-B Loop cleared', 'info');
           }
         }
         break;
@@ -156,7 +155,6 @@ class ShortcutsManager {
           window.MediaXVideoEffects.resetRotation();
           window.MediaXVideoEffects.resetFlip();
           window.MediaXVideoEffects.resetZoom();
-          if (window.MediaXApp) window.MediaXApp.showToast('Video adjustments reset', 'info');
         }
         break;
 

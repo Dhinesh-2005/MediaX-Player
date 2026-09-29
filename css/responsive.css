@@ -26,17 +26,88 @@
     --seekbar-thumb: 18px;
   }
 
+  /* Fluid mobile viewport scrolling */
+  html, body {
+    height: auto;
+    min-height: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  body.player-active {
+    overflow: hidden;
+    height: 100vh;
+    height: 100dvh;
+  }
+
+  #app-container {
+    height: auto;
+    min-height: 100vh;
+    min-height: 100dvh;
+    overflow: visible;
+  }
+
+  .view-landing {
+    position: relative;
+    min-height: 100vh;
+    min-height: 100dvh;
+    height: auto;
+    overflow-y: visible;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
+  }
+
+  .view-landing.hidden {
+    display: none !important;
+  }
+
+  .view-player.active {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    overflow: hidden;
+    height: 100vh;
+    height: 100dvh;
+  }
+
   /* Landing Screen on mobile */
   .landing-header {
+    position: sticky;
+    top: 0;
     padding: 0 16px;
+    z-index: 50;
+    background: rgba(6, 8, 13, 0.92);
   }
 
   .landing-content {
-    gap: 20px;
+    margin: 0 auto;
+    padding: 18px 14px 44px 14px;
+    gap: 18px;
+    width: 100%;
   }
 
   .dropzone-card {
-    padding: 32px 18px;
+    padding: 28px 16px;
+    width: 100%;
+  }
+
+  .dropzone-actions {
+    width: 100%;
+  }
+
+  .dropzone-actions .btn-primary {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .sample-pills {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .privacy-banner {
+    width: 100%;
   }
 
   .dropzone-icon-wrapper {
@@ -112,6 +183,7 @@
 
   .drawer-content {
     flex-direction: column;
+    overflow-y: hidden;
   }
 
   .drawer-tabs-nav {
@@ -123,6 +195,7 @@
     gap: 6px;
     overflow-x: auto;
     flex-shrink: 0;
+    -webkit-overflow-scrolling: touch;
   }
 
   .tab-nav-btn {
@@ -136,6 +209,36 @@
   .tab-nav-btn.active {
     border-left: none;
     border-bottom: 3px solid var(--accent);
+  }
+
+  .drawer-tab-panes {
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
+  }
+
+  .playlist-list {
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
+  }
+
+  /* Toast Notification mobile positioning */
+  #toast-container {
+    top: 12px;
+    left: 12px;
+    right: 12px;
+    align-items: center;
+  }
+
+  .toast {
+    min-width: 0;
+    width: 100%;
+    max-width: 360px;
+    padding: 10px 14px;
+    font-size: 13px;
   }
 
   /* Subtitle sizing on mobile */

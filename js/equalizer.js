@@ -110,10 +110,6 @@ class EqualizerController {
 
     window.MediaXAudio.setAllBands(values);
     window.MediaXStorage.setSetting('eqPreset', presetName);
-
-    if (notify && window.MediaXApp) {
-      window.MediaXApp.showToast(`Equalizer preset: ${presetName}`, 'info');
-    }
   }
 
   markCustom() {

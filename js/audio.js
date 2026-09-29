@@ -398,10 +398,6 @@ class MediaXAudioEngine {
 
     this.syncAudioTrackUI();
 
-    if (window.MediaXApp) {
-      window.MediaXApp.showToast(`Audio Track: ${selectedTrack.label}`, 'info');
-    }
-
     return selectedTrack;
   }
 

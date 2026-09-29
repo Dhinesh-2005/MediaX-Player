@@ -43,10 +43,6 @@ class PlaylistManager {
     // If nothing currently playing, play first added file
     if (this.currentIndex === -1 && this.items.length > 0) {
       this.playIndex(startIndex);
-    } else {
-      if (window.MediaXApp) {
-        window.MediaXApp.showToast(`Added ${fileArray.length} items to playlist`, 'info');
-      }
     }
   }
 
@@ -183,18 +179,12 @@ class PlaylistManager {
     if (window.MediaXPlayer) {
       window.MediaXPlayer.unload();
     }
-    if (window.MediaXApp) {
-      window.MediaXApp.showToast('Playlist cleared', 'info');
-    }
   }
 
   toggleShuffle() {
     this.isShuffled = !this.isShuffled;
     if (this.isShuffled) {
       this.rebuildShuffleOrder();
-    }
-    if (window.MediaXApp) {
-      window.MediaXApp.showToast(`Shuffle: ${this.isShuffled ? 'ON' : 'OFF'}`, 'info');
     }
     return this.isShuffled;
   }
@@ -203,10 +193,6 @@ class PlaylistManager {
     const modes = ['off', 'all', 'one'];
     const nextIdx = (modes.indexOf(this.repeatMode) + 1) % modes.length;
     this.repeatMode = modes[nextIdx];
-    if (window.MediaXApp) {
-      const labels = { off: 'Repeat: OFF', all: 'Repeat: ALL', one: 'Repeat: ONE' };
-      window.MediaXApp.showToast(labels[this.repeatMode], 'info');
-    }
     return this.repeatMode;
   }
 
